@@ -1,0 +1,11 @@
+{
+    "name": "realUpdate",
+    "version": "0.0.1",
+    "description": "Real time data update",
+    "dependencies": {
+        "socket.io": "latest",
+        "express": "latest",
+        "jade": "latest"
+    },
+    "author": "aSedali"
+}
