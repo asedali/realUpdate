@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO Map</title>
+	 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+      <div style="width:100%;height:500px;" id="map"></div>
+    <ul id="messages"></ul>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+ <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+    <script>
+      var socket = io();
+	  var markerColor='blue';
+	  if(window.location.pathname=='/red'){ var markerColor='red'; }
+    $(document).ready(function(){
+	
+		var map = L.map('map').setView([35.6891975, 51.3889736], 14);
+
+		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IjZjNmRjNzk3ZmE2MTcwOTEwMGY0MzU3YjUzOWFmNWZhIn0.Y8bhBaUMqFiPrDRW9hieoQ', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.streets'
+		}).addTo(map);
+	  		var mRed= L.marker([0, 0]).addTo(map);
+			var mBlue= L.marker([0, 0]).addTo(map);
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+		    socket.emit('dataUpdater', 'Geolocation is not supported by this browser.');
+
+    }
+}
+function showPosition(position) {
+		socket.emit('dataUpdater', {pos:[position.coords.latitude, position.coords.longitude],marker:markerColor});
+}
+
+setInterval(getLocation, 3000);
+
+      socket.on('dataUpdater', function(msg){
+	  if(msg.marker=='red'){
+		map.removeLayer(mRed);
+		var myIcon = L.icon({
+		iconSize: [42, 42],
+    iconUrl: 'http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/map-marker-icon.png'
+	});
+		mRed= L.marker(msg.pos, {icon: myIcon}).addTo(map);
+	  }
+	  else if(msg.marker=='blue'){
+		map.removeLayer(mBlue);
+		mBlue= L.marker(msg.pos).addTo(map);
+	  }
+        $('#messages').append($('<li>').text(JSON.stringify(msg)));
+      });
+	  
+	 
+	});
+	
+    </script>
+  </body>
+</html>
